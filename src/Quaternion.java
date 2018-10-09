@@ -1,9 +1,11 @@
+import jdk.nashorn.internal.runtime.regexp.RegExp;
+
 import java.util.*;
 
 /** Quaternions. Basic operations. */
 public class Quaternion {
 
-   // TODO!!! Your fields here!
+   private double real, part_i, part_j, part_k;
 
    /** Constructor from four double values.
     * @param a real part
@@ -11,36 +13,41 @@ public class Quaternion {
     * @param c imaginary part j
     * @param d imaginary part k
     */
+
    public Quaternion (double a, double b, double c, double d) {
-      // TODO!!! Your constructor here!
+       real = a;
+       part_i = b;
+       part_j = c;
+       part_k = d;
+
    }
 
    /** Real part of the quaternion.
     * @return real part
     */
    public double getRpart() {
-      return 0.; // TODO!!!
+      return real;
    }
 
    /** Imaginary part i of the quaternion. 
     * @return imaginary part i
     */
    public double getIpart() {
-      return 0.; // TODO!!!
+      return part_i;
    }
 
    /** Imaginary part j of the quaternion. 
     * @return imaginary part j
     */
    public double getJpart() {
-      return 0.; // TODO!!!
+      return part_j;
    }
 
    /** Imaginary part k of the quaternion. 
     * @return imaginary part k
     */
    public double getKpart() {
-      return 0.; // TODO!!!
+      return part_k;
    }
 
    /** Conversion of the quaternion to the string.
@@ -50,7 +57,12 @@ public class Quaternion {
     */
    @Override
    public String toString() {
-      return ""; // TODO!!!
+      String answer = "";
+      answer = answer + (real>=0? real : real);
+      answer = answer + (part_i>=0? "+"+part_i : part_i);
+      answer = answer + (part_j>=0? "+"+part_j : part_j);
+      answer = answer + (part_k>=0? "+"+part_k : part_k);
+      return answer;  //kaota plussid 2ra kui +- tuleks
    }
 
    /** Conversion from the string to the quaternion. 
@@ -61,7 +73,8 @@ public class Quaternion {
     * @return a quaternion represented by string s
     */
    public static Quaternion valueOf (String s) {
-      return null; // TODO!!!
+
+      return null;
    }
 
    /** Clone of the quaternion.
@@ -69,14 +82,17 @@ public class Quaternion {
     */
    @Override
    public Object clone() throws CloneNotSupportedException {
-      return null; // TODO!!!
+       return new Quaternion(real, part_i, part_j, part_k);
    }
 
    /** Test whether the quaternion is zero. 
     * @return true, if the real part and all the imaginary parts are (close to) zero
     */
    public boolean isZero() {
-      return false; // TODO!!!
+      double epsilon = 0.00000001;
+      if (Math.abs(real) < epsilon && Math.abs(part_i) < epsilon &&
+              Math.abs(part_j) < epsilon && Math.abs(part_k) < epsilon) return true;
+      return false;
    }
 
    /** Conjugate of the quaternion. Expressed by the formula 
@@ -84,7 +100,7 @@ public class Quaternion {
     * @return conjugate of <code>this</code>
     */
    public Quaternion conjugate() {
-      return null; // TODO!!! 
+      return new Quaternion(real, -part_i, -part_j, -part_k);
    }
 
    /** Opposite of the quaternion. Expressed by the formula 
@@ -92,7 +108,11 @@ public class Quaternion {
     * @return quaternion <code>-this</code>
     */
    public Quaternion opposite() {
-      return null; // TODO!!!
+      real = -real;
+      part_i = -part_i;
+      part_j = -part_j;
+      part_k = -part_k;
+      return this;
    }
 
    /** Sum of quaternions. Expressed by the formula 
@@ -101,7 +121,8 @@ public class Quaternion {
     * @return quaternion <code>this+q</code>
     */
    public Quaternion plus (Quaternion q) {
-      return null; // TODO!!!
+      return new Quaternion(real + q.getRpart(), part_i + q.getIpart(),
+              part_j + q.getJpart(), part_k + q.getKpart());
    }
 
    /** Product of quaternions. Expressed by the formula
@@ -111,7 +132,24 @@ public class Quaternion {
     * @return quaternion <code>this*q</code>
     */
    public Quaternion times (Quaternion q) {
-      return null; // TODO!!!
+      double q1a = real;
+      double q1b = part_i;
+      double q1c = part_j;
+      double q1d = part_k;
+
+      // Components of the second quaternion.
+      double q2a = q.getRpart();
+      double q2b = q.getIpart();
+      double q2c = q.getJpart();
+      double q2d = q.getKpart();
+
+      // Components of the product.
+      final double w = q1a * q2a - q1b * q2b - q1c * q2c - q1d * q2d;
+      final double x = q1a * q2b + q1b * q2a + q1c * q2d - q1d * q2c;
+      final double y = q1a * q2c - q1b * q2d + q1c * q2a + q1d * q2b;
+      final double z = q1a * q2d + q1b * q2c - q1c * q2b + q1d * q2a;
+
+      return new Quaternion(w, x, y, z);
    }
 
    /** Multiplication by a coefficient.
@@ -119,7 +157,7 @@ public class Quaternion {
     * @return quaternion <code>this*r</code>
     */
    public Quaternion times (double r) {
-      return null; // TODO!!!
+      return null;
    }
 
    /** Inverse of the quaternion. Expressed by the formula
@@ -136,7 +174,8 @@ public class Quaternion {
     * @return quaternion <code>this-q</code>
     */
    public Quaternion minus (Quaternion q) {
-      return null; // TODO!!!
+      return new Quaternion(real - q.getRpart(), part_i - q.getIpart(),
+              part_j - q.getJpart(), part_k - q.getKpart());
    }
 
    /** Right quotient of quaternions. Expressed as multiplication to the inverse.
@@ -162,7 +201,18 @@ public class Quaternion {
     */
    @Override
    public boolean equals (Object qo) {
-      return false; // TODO!!!
+      if (this == qo) {
+         return true;
+      }
+      if (qo instanceof Quaternion) {
+         Quaternion q = (Quaternion) qo;
+         return real == q.getRpart() &&
+                 part_i == q.getIpart() &&
+                 part_j == q.getJpart() &&
+                 part_k == q.getKpart();
+      }
+
+      return false;
    }
 
    /** Dot product of quaternions. (p*conjugate(q) + q*conjugate(p))/2
@@ -170,7 +220,8 @@ public class Quaternion {
     * @return dot product of this and q
     */
    public Quaternion dotMult (Quaternion q) {
-      return null; // TODO!!!
+      return new Quaternion(real * q.getRpart(), part_i * q.getIpart(),
+              part_j * q.getJpart(), part_k * q.getKpart());
    }
 
    /** Integer hashCode has to be the same for equal objects.
@@ -186,7 +237,7 @@ public class Quaternion {
     * @return norm of <code>this</code> (norm is a real number)
     */
    public double norm() {
-      return 0.; // TODO!!!
+      return Math.sqrt(real*real+part_j*part_j+part_i*part_i+part_k*part_k);
    }
 
    /** Main method for testing purposes. 
