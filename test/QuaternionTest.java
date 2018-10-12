@@ -350,7 +350,7 @@ public class QuaternionTest {
    @Test (expected=RuntimeException.class)
    public void testZeroInverse() {
       Quaternion f = new Quaternion (0., 0., 0., 0.);
-      f.inverse();
+      System.out.print(f.inverse());
    }
 
    @Test (timeout=1000)

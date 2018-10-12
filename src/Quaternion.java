@@ -1,5 +1,4 @@
 import jdk.nashorn.internal.runtime.regexp.RegExp;
-
 import java.util.*;
 
 /** Quaternions. Basic operations. */
@@ -157,7 +156,7 @@ public class Quaternion {
     * @return quaternion <code>this*r</code>
     */
    public Quaternion times (double r) {
-      return null;
+      return new Quaternion(real*r, part_i*r, part_j*r, part_k*r);
    }
 
    /** Inverse of the quaternion. Expressed by the formula
@@ -166,7 +165,11 @@ public class Quaternion {
     * @return quaternion <code>1/this</code>
     */
    public Quaternion inverse() {
-      return null; // TODO!!!
+       if (isZero())
+           throw new RuntimeException("Division by zero is not allowed.");
+       double squareNorm = (real * real) + (part_i * part_i) + (part_j * part_j) + (part_k * part_k);
+       return new Quaternion((real / squareNorm), part_i*-1 / squareNorm,
+               part_j*-1 / squareNorm, part_k*-1 / squareNorm);
    }
 
    /** Difference of quaternions. Expressed as addition to the opposite.
@@ -201,18 +204,26 @@ public class Quaternion {
     */
    @Override
    public boolean equals (Object qo) {
-      if (this == qo) {
-         return true;
-      }
-      if (qo instanceof Quaternion) {
-         Quaternion q = (Quaternion) qo;
-         return real == q.getRpart() &&
-                 part_i == q.getIpart() &&
-                 part_j == q.getJpart() &&
-                 part_k == q.getKpart();
-      }
+       double epsilon = 0.00000001;
+       if (qo instanceof Quaternion) {
+           return Math.abs(real - ((Quaternion)qo).real) < epsilon &&
+                   Math.abs(part_i - ((Quaternion)qo).part_i) < epsilon &&
+                   Math.abs(part_j - ((Quaternion)qo).part_j) < epsilon &&
+                   Math.abs(part_k - ((Quaternion)qo).part_k) < epsilon;
+       }
+       return false;
 
-      return false;
+//       if (this == qo) {
+//         return true;
+//      }
+//      if (qo instanceof Quaternion) {
+//         Quaternion q = (Quaternion) qo;
+//         return real == q.getRpart() &&
+//                 part_i == q.getIpart() &&
+//                 part_j == q.getJpart() &&
+//                 part_k == q.getKpart();
+//      }
+//      return false;
    }
 
    /** Dot product of quaternions. (p*conjugate(q) + q*conjugate(p))/2
@@ -220,8 +231,16 @@ public class Quaternion {
     * @return dot product of this and q
     */
    public Quaternion dotMult (Quaternion q) {
-      return new Quaternion(real * q.getRpart(), part_i * q.getIpart(),
-              part_j * q.getJpart(), part_k * q.getKpart());
+       // Finding conjugates of this and q
+       Quaternion this_conj = new Quaternion(real, -part_i, -part_j, -part_k);
+       Quaternion q_conj = new Quaternion(q.real, -q.part_i, -q.part_j, -q.part_k);
+
+       // Multiplying this with q conjugate and q with this conjugate
+       // Adding them two together
+       Quaternion added = this.times(q_conj).plus(q.times(this_conj));
+
+       // Returning resulting Quaternion, but divinding each param with 2
+       return new Quaternion(added.real/2, added.part_i/2, added.part_j/2, added.part_k/2);
    }
 
    /** Integer hashCode has to be the same for equal objects.
@@ -229,7 +248,7 @@ public class Quaternion {
     */
    @Override
    public int hashCode() {
-      return 0; // TODO!!!
+       return toString().hashCode();
    }
 
    /** Norm of the quaternion. Expressed by the formula 
@@ -263,9 +282,9 @@ public class Quaternion {
       System.out.println ("clone equals to original: " + res.equals (arv1));
       System.out.println ("clone is not the same object: " + (res!=arv1));
       System.out.println ("hashCode: " + res.hashCode());
-      res = valueOf (arv1.toString());
-      System.out.println ("string conversion equals to original: " 
-         + res.equals (arv1));
+//      res = valueOf (arv1.toString());
+//      System.out.println ("string conversion equals to original: "
+//         + res.equals (arv1));
       Quaternion arv2 = new Quaternion (1., -2.,  -1., 2.);
       if (arg.length > 1)
          arv2 = valueOf (arg[1]);
