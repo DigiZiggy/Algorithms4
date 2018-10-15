@@ -72,8 +72,32 @@ public class Quaternion {
     * @return a quaternion represented by string s
     */
    public static Quaternion valueOf (String s) {
+      List<String> values = new ArrayList<String>();
 
-      return null;
+      String real = s.substring(0, s.length()-12);
+      values.add(real);
+
+      String part_i = s.substring(s.length()-12, s.length()-8);
+      values.add(part_i);
+
+      String part_j = s.substring(s.length()-8, s.length()-4);
+      values.add(part_j);
+
+      String part_k = s.substring(s.length()-4);
+      values.add(part_k);
+
+      List<Double> double_values = new LinkedList<>();
+
+      for (String item : values) {
+         if (item.substring(0) == "-") {
+            double neg_value = Double.valueOf(item)*-1;
+            double_values.add(neg_value);
+         }
+         double pos_value = Double.valueOf(item);
+         double_values.add(pos_value);
+      }
+
+      return new Quaternion(double_values.get(0), double_values.get(1), double_values.get(2), double_values.get(3));
    }
 
    /** Clone of the quaternion.
@@ -186,7 +210,7 @@ public class Quaternion {
     * @return quaternion <code>this*inverse(q)</code>
     */
    public Quaternion divideByRight (Quaternion q) {
-      return null; // TODO!!!
+       return times(q.inverse());  //THIS IS NEW
    }
 
    /** Left quotient of quaternions.
@@ -194,7 +218,7 @@ public class Quaternion {
     * @return quaternion <code>inverse(q)*this</code>
     */
    public Quaternion divideByLeft (Quaternion q) {
-      return null; // TODO!!!
+       return q.inverse().times(this);  //THIS IS NEW
    }
    
    /** Equality test of quaternions. Difference of equal numbers
@@ -212,18 +236,6 @@ public class Quaternion {
                    Math.abs(part_k - ((Quaternion)qo).part_k) < epsilon;
        }
        return false;
-
-//       if (this == qo) {
-//         return true;
-//      }
-//      if (qo instanceof Quaternion) {
-//         Quaternion q = (Quaternion) qo;
-//         return real == q.getRpart() &&
-//                 part_i == q.getIpart() &&
-//                 part_j == q.getJpart() &&
-//                 part_k == q.getKpart();
-//      }
-//      return false;
    }
 
    /** Dot product of quaternions. (p*conjugate(q) + q*conjugate(p))/2
@@ -256,7 +268,7 @@ public class Quaternion {
     * @return norm of <code>this</code> (norm is a real number)
     */
    public double norm() {
-      return Math.sqrt(real*real+part_j*part_j+part_i*part_i+part_k*part_k);
+      return Math.sqrt(real*real + part_j*part_j + part_i*part_i + part_k*part_k);
    }
 
    /** Main method for testing purposes. 
@@ -264,6 +276,8 @@ public class Quaternion {
     */
    public static void main (String[] arg) {
       Quaternion arv1 = new Quaternion (-1., 1, 2., -2.);
+      System.out.println (arv1.toString());
+      System.out.println (arv1.valueOf(arv1.toString()));
       if (arg.length > 0)
          arv1 = valueOf (arg[0]);
       System.out.println ("first: " + arv1.toString());
@@ -282,9 +296,9 @@ public class Quaternion {
       System.out.println ("clone equals to original: " + res.equals (arv1));
       System.out.println ("clone is not the same object: " + (res!=arv1));
       System.out.println ("hashCode: " + res.hashCode());
-//      res = valueOf (arv1.toString());
-//      System.out.println ("string conversion equals to original: "
-//         + res.equals (arv1));
+      res = valueOf (arv1.toString());
+      System.out.println ("string conversion equals to original: "
+         + res.equals (arv1));
       Quaternion arv2 = new Quaternion (1., -2.,  -1., 2.);
       if (arg.length > 1)
          arv2 = valueOf (arg[1]);
