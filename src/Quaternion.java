@@ -61,7 +61,7 @@ public class Quaternion {
       answer = answer + (part_i>=0? "+"+part_i : part_i);
       answer = answer + (part_j>=0? "+"+part_j : part_j);
       answer = answer + (part_k>=0? "+"+part_k : part_k);
-      return answer;  //kaota plussid 2ra kui +- tuleks
+      return answer;
    }
 
    /** Conversion from the string to the quaternion. 
@@ -74,27 +74,29 @@ public class Quaternion {
    public static Quaternion valueOf (String s) {
       List<String> values = new ArrayList<String>();
 
-      String real = s.substring(0, s.length()-12);
-      values.add(real);
+      String value = "";
+      // Every time + or - is found, add previously put together string as a value into values list
+       // Start building new value to add to list
+      value += s.charAt(0);
+      for(int i = 1; i < s.length(); i++)
+      {
+          char c = s.charAt(i);
+          if (c == '-' || c == '+') {
+              values.add(value);
+              value = "";
+              value += c;
+          } else {
+              value += c;
+          }
+      }
+      values.add(value);
 
-      String part_i = s.substring(s.length()-12, s.length()-8);
-      values.add(part_i);
+       // Convert string values into doubles
+       List<Double> double_values = new LinkedList<>();
 
-      String part_j = s.substring(s.length()-8, s.length()-4);
-      values.add(part_j);
-
-      String part_k = s.substring(s.length()-4);
-      values.add(part_k);
-
-      List<Double> double_values = new LinkedList<>();
-
-      for (String item : values) {
-         if (item.substring(0) == "-") {
-            double neg_value = Double.valueOf(item)*-1;
-            double_values.add(neg_value);
-         }
-         double pos_value = Double.valueOf(item);
-         double_values.add(pos_value);
+       for (String item : values) {
+           double double_value = Double.valueOf(item);
+           double_values.add(double_value);
       }
 
       return new Quaternion(double_values.get(0), double_values.get(1), double_values.get(2), double_values.get(3));
@@ -131,11 +133,8 @@ public class Quaternion {
     * @return quaternion <code>-this</code>
     */
    public Quaternion opposite() {
-      real = -real;
-      part_i = -part_i;
-      part_j = -part_j;
-      part_k = -part_k;
-      return this;
+       return new Quaternion(real * -1, part_i * -1,
+               part_j * -1, part_k * -1);
    }
 
    /** Sum of quaternions. Expressed by the formula 
@@ -155,24 +154,13 @@ public class Quaternion {
     * @return quaternion <code>this*q</code>
     */
    public Quaternion times (Quaternion q) {
-      double q1a = real;
-      double q1b = part_i;
-      double q1c = part_j;
-      double q1d = part_k;
 
-      // Components of the second quaternion.
-      double q2a = q.getRpart();
-      double q2b = q.getIpart();
-      double q2c = q.getJpart();
-      double q2d = q.getKpart();
+      final double new_real = real * q.real - part_i * q.part_i - part_j * q.part_j - part_k * q.part_k;
+      final double new_parti = real * q.part_i + part_i * q.real + part_j * q.part_k - part_k * q.part_j;
+      final double new_partj = real * q.part_j - part_i * q.part_k + part_j * q.real + part_k * q.part_i;
+      final double new_partk = real * q.part_k + part_i * q.part_j - part_j * q.part_i + part_k * q.real;
 
-      // Components of the product.
-      final double w = q1a * q2a - q1b * q2b - q1c * q2c - q1d * q2d;
-      final double x = q1a * q2b + q1b * q2a + q1c * q2d - q1d * q2c;
-      final double y = q1a * q2c - q1b * q2d + q1c * q2a + q1d * q2b;
-      final double z = q1a * q2d + q1b * q2c - q1c * q2b + q1d * q2a;
-
-      return new Quaternion(w, x, y, z);
+      return new Quaternion(new_real, new_parti, new_partj, new_partk);
    }
 
    /** Multiplication by a coefficient.
@@ -210,7 +198,7 @@ public class Quaternion {
     * @return quaternion <code>this*inverse(q)</code>
     */
    public Quaternion divideByRight (Quaternion q) {
-       return times(q.inverse());  //THIS IS NEW
+       return times(q.inverse());
    }
 
    /** Left quotient of quaternions.
@@ -218,7 +206,7 @@ public class Quaternion {
     * @return quaternion <code>inverse(q)*this</code>
     */
    public Quaternion divideByLeft (Quaternion q) {
-       return q.inverse().times(this);  //THIS IS NEW
+       return q.inverse().times(this);
    }
    
    /** Equality test of quaternions. Difference of equal numbers
@@ -276,8 +264,12 @@ public class Quaternion {
     */
    public static void main (String[] arg) {
       Quaternion arv1 = new Quaternion (-1., 1, 2., -2.);
+      Quaternion arv3 =  new Quaternion (2., -3., 6., 24.);
       System.out.println (arv1.toString());
-      System.out.println (arv1.valueOf(arv1.toString()));
+      System.out.println (arv3.toString());
+       System.out.println ((arv3.plus(arv3.opposite()).isZero()));
+
+       System.out.println (arv1.valueOf(arv1.toString()));
       if (arg.length > 0)
          arv1 = valueOf (arg[0]);
       System.out.println ("first: " + arv1.toString());
